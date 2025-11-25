@@ -208,9 +208,9 @@ __marimo__/
 
 # folders created by airflow + kafka
 # airflow
-dags
+# dags
 logs
-plugins
+# plugins
 scripts
 
 # kafka
