@@ -14,3 +14,5 @@ with dag:
         bash_command='cd scripts && python ecom_log_gen_kafka.py --kafka kafka:9092 --count 1000000 --topic ecom_json',
     )
 
+
+
