@@ -19,8 +19,8 @@ ENV HADOOP_HOME=${HADOOP_HOME:-"/opt/hadoop"}
 ENV PATH="/opt/spark/sbin:/opt/spark/bin:${PATH}"
 ENV SPARK_HOME="/opt/spark"
 ENV SPARK_MASTER="spark://spark-master:7077"
-ENV SPARK_MASTER_HOST spark-master
-ENV SPARK_MASTER_PORT 7077
+ENV SPARK_MASTER_HOST="spark-master"
+ENV SPARK_MASTER_PORT="7077"
 ENV PYSPARK_PYTHON python3
 
 RUN mkdir -p ${HADOOP_HOME} && mkdir -p ${SPARK_HOME}
@@ -39,7 +39,7 @@ COPY spark.requirements.txt .
 RUN pip3 install -r spark.requirements.txt
 
 # copy spark default config
-COPY ./conf/spark-defaults.conf "$SPARK_HOME/conf"
+COPY ./conf/spark-defaults.conf "${SPARK_HOME}/conf"
 
 # make bins+scripts executable
 RUN chmod u+x /opt/spark/sbin/* && \
@@ -50,5 +50,5 @@ ENV PYTHONPATH=$SPARK_HOME/python/:$PYTHONPATH
 COPY conf/entrypoint.sh ${SPARK_HOME}/
 RUN chmod u+x /opt/spark/entrypoint.sh
 
-ENTRYPOINT ["/opt/spark/entrypoint.sh"]
+ENTRYPOINT ["/opt/spark/start-master.sh"]
 CMD [ "bash" ]

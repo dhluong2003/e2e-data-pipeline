@@ -133,27 +133,31 @@ services:
     volumes:
       - ./storage:/data
     environment:
-      MINIO_ROOT_USER: sample
-      MINIO_ROOT_PASSWORD: sample # change to some other username + password
+      MINIO_ROOT_USER: teststring
+      MINIO_ROOT_PASSWORD: teststring # change to some other username + password
     command: server --console-address ":9001" /data
 
-    services:
+    # services:
   spark-master:
     container_name: spark-master
-    build: .
+    build:
+      context: .
+      dockerfile: ./spark.dockerfile
     image: spark-image
-    entrypoint: ['./entrypoint.sh', 'master']
+    entrypoint: /bin/bash
+    command: -c "/opt/spark/sbin/start-master.sh; tail -f /dev/null"
     healthcheck:
-      test: [ "CMD", "curl", "-f", "http://localhost:8080" ]
+      test: [ "CMD", "curl", "-f", "http://localhost:7077" ]
       interval: 5s
       timeout: 3s
       retries: 3
     volumes:
-      - ./scripts:/opt/spark/scripts
-      - ./data:/opt/spark/data
-      - spark-logs:/opt/spark/spark-events
-    env_file:
-      - .env.spark
+      - ./spark-scripts:/opt/spark/scripts
+      - ./spark-data:/opt/spark/data
+      - ./spark-logs:/opt/spark/spark-events
+      - ./conf/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
+    # env_file:
+    #   - ./conf/spark-env.sh
     ports:
       - '8090:8080'
       - '7077:7077'
@@ -161,30 +165,35 @@ services:
   spark-history-server:
     container_name: spark-history
     image: spark-image
-    entrypoint: ['./entrypoint.sh', 'history']
+    # entrypoint: /bin/bash
+    entrypoint: /bin/bash
+    command: -c "/opt/spark/sbin/start-history-server.sh; tail -f /dev/null"
     depends_on:
       - spark-master
-    env_file:
-      - .env.spark
+    # env_file:
+    #   - ./conf/spark-env.sh
     volumes:
-      - ./scripts:/opt/spark/scripts
-      - ./data:/opt/spark/data
-      - spark-logs:/opt/spark/spark-events
+      - ./spark-scripts:/opt/spark/scripts
+      - ./spark-data:/opt/spark/data
+      - ./spark-logs:/opt/spark/spark-events
+      - ./conf/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
     ports:
       - '18080:18080'
 
   spark-worker:
     container_name: spark-worker
     image: spark-image
-    entrypoint: ['./entrypoint.sh', 'worker']
+    entrypoint: /bin/bash
+    command: -c "/opt/spark/sbin/start-worker.sh  spark://spark-master:7077; tail -f /dev/null"
     depends_on:
       - spark-master
-    env_file:
-      - .env.spark
+    # env_file:
+    #   - ./conf/spark-env.sh
     volumes:
-      - ./scripts:/opt/spark/scripts
-      - ./data:/opt/spark/data
-      - spark-logs:/opt/spark/spark-events
+      - ./spark-scripts:/opt/spark/scripts
+      - ./spark-data:/opt/spark/data
+      - ./spark-logs:/opt/spark/spark-events
+      - ./conf/spark-env.sh:/opt/spark/conf/spark-env.sh:ro
 
 volumes:
   spark-logs:
